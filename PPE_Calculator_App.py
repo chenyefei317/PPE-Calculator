@@ -2,10 +2,10 @@ import streamlit as st
 import pandas as pd
 import io
 
-st.set_page_config(page_title="PPE 申购自动计算器 V2", layout="wide")
+st.set_page_config(page_title="PPE 申购自动计算器", layout="wide")
 
-st.title("🛡️ 劳防用品 (PPE) 月度申购自动计算器 V2")
-st.markdown("根据**最新版《劳防用品配置标准（2026）》**自动计算各部门采购量。您只需修改**人数**和**工作天数**即可。")
+st.title("🛡️ 劳防用品 (PPE) 月度申购自动计算器")
+st.markdown("根据**最新版《劳防用品配置标准（2026）》**自动计算各部门采购量。")
 
 # 侧边栏输入参数
 st.sidebar.header("参数设置")
@@ -16,13 +16,9 @@ p_count = st.sidebar.number_input("生产部人数", min_value=0, value=16)
 t_count = st.sidebar.number_input("技术部人数", min_value=0, value=12)
 q_count = st.sidebar.number_input("品管部人数", min_value=0, value=2)
 w_count = st.sidebar.number_input("仓库人数", min_value=0, value=2)
+z_count = st.sidebar.number_input("驻外人数", min_value=0, value=9) # 新增驻外人员，默认预设9人
 
-# 最新配置标准逻辑 (基于 2026 PPE -  测试.xlsx)
-# 生产部: 口罩 3个/天, 护目镜 1副/月, 耳塞 3副/月, 化学品防护服 2件/月, 棉线手套 12副/月, 乳胶手套 30副/月 (60只), 防化学品手套 2副/月
-# 技术部: 口罩 1.5个/天, 护目镜 1副/年 (月度为0), 耳塞 3副/月, 乳胶手套 4.5盒/月 (4.5*100=450只)
-# 品管部: 口罩 1个/天, 护目镜 1副/年 (月度为0), 耳塞 1副/月, 乳胶手套 4.5盒/月 (4.5*100=450只)
-# 仓库: 口罩 1个/天, 棉线手套 10副/月
-
+# 最新配置标准逻辑核算 (增加驻外)
 data = [
     {
         "部门": "生产部",
@@ -75,6 +71,19 @@ data = [
         "棉线手套(副)": w_count * 10,
         "乳胶手套(只)": 0,
         "防化手套(副)": 0
+    },
+    {
+        "部门": "驻外",
+        "人数": z_count,
+        "工作日": days,
+        "头戴式口罩(个)": 0,
+        "耳挂式口罩(个)": z_count * days * 1,  # 1个/天/人
+        "护目镜(副)": 0,                     # 1副/3年，月度计为0
+        "耳塞(副)": z_count * 3,             # 3副/月/人
+        "化学防护服(件)": 0,
+        "棉线手套(副)": 0,
+        "乳胶手套(只)": z_count * 1 * 100,     # 1盒/月/人，按100只/盒计算
+        "防化手套(副)": 0
     }
 ]
 
@@ -92,8 +101,7 @@ def to_excel(df):
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name='PPE最新核算结果')
-    processed_data = output.getvalue()
-    return processed_data
+    return output.getvalue()
 
 excel_data = to_excel(df)
 
