@@ -2,23 +2,24 @@ import streamlit as st
 import pandas as pd
 import io
 
-st.set_page_config(page_title="PPE 申购自动计算器", layout="wide")
+st.set_page_config(page_title="慧瑞 - PPE自动计算器", layout="wide")
 
-st.title("🛡️ 劳防用品 (PPE) 月度申购自动计算器")
+# 1. 修改了网页主标题
+st.title("🛡️ 慧瑞 - 劳防用品 (PPE) 月度申购自动计算器")
 st.markdown("根据**最新版《劳防用品配置标准（2026）》**自动计算各部门采购量。")
 
 # 侧边栏输入参数
 st.sidebar.header("参数设置")
-days = st.sidebar.number_input("本月工作天数", min_value=1, max_value=31, value=21, step=1)
+days = st.sidebar.number_input("本月常规工作天数", min_value=1, max_value=31, value=21, step=1)
 
 st.sidebar.subheader("各部门人数")
 p_count = st.sidebar.number_input("生产部人数", min_value=0, value=16)
 t_count = st.sidebar.number_input("技术部人数", min_value=0, value=12)
 q_count = st.sidebar.number_input("品管部人数", min_value=0, value=2)
 w_count = st.sidebar.number_input("仓库人数", min_value=0, value=2)
-z_count = st.sidebar.number_input("驻外人数", min_value=0, value=9) # 新增驻外人员，默认预设9人
+z_count = st.sidebar.number_input("驻外人数", min_value=0, value=9)
 
-# 最新配置标准逻辑核算 (增加驻外)
+# 最新配置标准逻辑核算
 data = [
     {
         "部门": "生产部",
@@ -72,17 +73,18 @@ data = [
         "乳胶手套(只)": 0,
         "防化手套(副)": 0
     },
+    # 2. 驻外逻辑修改：工作日固定25天，最终数量自动乘以2 (2个月的量)
     {
-        "部门": "驻外",
+        "部门": "驻外 (按2个月计)",
         "人数": z_count,
-        "工作日": days,
+        "工作日": 25, 
         "头戴式口罩(个)": 0,
-        "耳挂式口罩(个)": z_count * days * 1,  # 1个/天/人
-        "护目镜(副)": 0,                     # 1副/3年，月度计为0
-        "耳塞(副)": z_count * 3,             # 3副/月/人
+        "耳挂式口罩(个)": z_count * 25 * 1 * 2,    # 1个/天/人 * 25天 * 2个月
+        "护目镜(副)": 0,
+        "耳塞(副)": z_count * 3 * 2,               # 3副/月/人 * 2个月
         "化学防护服(件)": 0,
         "棉线手套(副)": 0,
-        "乳胶手套(只)": z_count * 1 * 100,     # 1盒/月/人，按100只/盒计算
+        "乳胶手套(只)": z_count * 1 * 100 * 2,     # 1盒/月/人 * 100只/盒 * 2个月
         "防化手套(副)": 0
     }
 ]
@@ -108,6 +110,10 @@ excel_data = to_excel(df)
 st.download_button(
     label="📥 导出最新计算结果至 Excel",
     data=excel_data,
-    file_name="2026_PPE_月度自动核算单.xlsx",
+    file_name="慧瑞_PPE_月度自动核算单.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
+
+# 3. 增加底部版权声明
+st.markdown("---")
+st.markdown("<p style='text-align: center; color: gray; font-size: 14px;'>仅供学习，严禁商业用途，版权所有：Yefei</p>", unsafe_allow_html=True)
