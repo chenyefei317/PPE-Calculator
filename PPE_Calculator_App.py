@@ -5,6 +5,17 @@ import datetime
 
 st.set_page_config(page_title="慧瑞 - PPE自动计算器", layout="wide")
 
+# ================= 新增：隐藏右上角菜单和底部水印 =================
+hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;} /* 隐藏右上角汉堡菜单 */
+            header {visibility: hidden;}    /* 隐藏顶部的 header (含 Deploy 按钮) */
+            footer {visibility: hidden;}    /* 隐藏底部的 Streamlit 水印 */
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+# ===============================================================
+
 # ================= 新增：Logo 显示区 =================
 # 将公司的 logo 图片命名为 logo.png，并与此 app.py 放在同一个文件夹或 GitHub 仓库中
 try:
@@ -83,7 +94,7 @@ data = [
         "乳胶手套(只)": 0,
         "防化手套(副)": 0
     },
-    # 2. 驻外逻辑修改：工作日固定25天，最终数量自动乘以2 (2个月的量)
+    # 驻外逻辑修改：工作日固定25天，最终数量自动乘以2 (2个月的量)
     {
         "部门": "驻外 (按2个月计)",
         "人数": z_count,
@@ -131,7 +142,7 @@ with col1:
         use_container_width=True
     )
 
-# 2. 打印与 PDF 导出功能 (生成可打印的 HTML)
+# 2. 打印与 PDF 导出功能
 def to_printable_html(df, days):
     current_date = datetime.datetime.now().strftime("%Y-%m-%d")
     html = f"""
